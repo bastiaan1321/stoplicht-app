@@ -1,4 +1,4 @@
-# 🌦 KNMI Weather Traffic Light
+# 🌦 Weather traffic light
 
 This is a full-stack Node.js app that:
 
@@ -87,13 +87,13 @@ Visit [http://localhost:3000/](http://localhost:3000/) to view a visual traffic 
 ### Build the image
 
 ```bash
-docker build -t knmi-weather-app .
+docker build -t weer-stoplicht .
 ```
 
 ### Run the container
 
 ```bash
-docker run -p 3000:3000 --env-file .env knmi-weather-app
+docker run -p 3000:3000 --env-file .env weer-stoplicht
 ```
 
 ---
