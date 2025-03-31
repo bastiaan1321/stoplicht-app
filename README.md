@@ -7,6 +7,8 @@ This is a full-stack Node.js app that:
 - Serves a frontend with a traffic light status (green/orange/red)
 - Built with **TypeScript**, **Docker**, and **Express**
 
+
+![alt text](image.png)
 ---
 
 ## 🚀 Features
