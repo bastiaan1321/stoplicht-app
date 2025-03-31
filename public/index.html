@@ -27,6 +27,41 @@
       font-size: 1.1rem;
       margin-top: 1rem;
     }
+
+    .compass-container {
+      margin-top: 2rem;
+    }
+
+    .compass {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      margin: 0 auto;
+      border: 2px solid #333;
+      border-radius: 50%;
+    }
+
+    .arrow {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      width: 4px;
+      height: 50px;
+      background: red;
+      transform-origin: bottom center;
+      transform: rotate(0deg);
+      transition: transform 0.5s ease-in-out;
+    }
+
+    .label {
+      position: absolute;
+      font-weight: bold;
+    }
+
+    .n { top: 5px; left: 50%; transform: translateX(-50%); }
+    .e { top: 50%; right: 5px; transform: translateY(-50%); }
+    .s { bottom: 5px; left: 50%; transform: translateX(-50%); }
+    .w { top: 50%; left: 5px; transform: translateY(-50%); }
   </style>
 </head>
 <body>
@@ -34,6 +69,18 @@
   <div id="traffic-light" class="light"></div>
   <p id="status-text">Loading...</p>
   <div class="data" id="details"></div>
+
+  <!-- Wind direction compass -->
+  <div class="compass-container">
+    <h2>Wind Direction</h2>
+    <div class="compass">
+      <div class="arrow" id="wind-arrow"></div>
+      <div class="label n">N</div>
+      <div class="label e">E</div>
+      <div class="label s">S</div>
+      <div class="label w">W</div>
+    </div>
+  </div>
 
   <script>
     // Convert degrees to compass direction
@@ -50,6 +97,7 @@
         const light = document.getElementById("traffic-light");
         const statusText = document.getElementById("status-text");
         const details = document.getElementById("details");
+        const arrow = document.getElementById("wind-arrow");
 
         light.classList.remove("green", "orange", "red");
         light.classList.add(data.status);
@@ -63,6 +111,8 @@
           <p>🌬 Gusts: ${data.windGust} m/s (${data.windGustBft} Bft)</p>
           <p>🧭 Direction: ${windDir} (${data.windDirection}°)</p>
         `;
+
+        arrow.style.transform = `rotate(${data.windDirection}deg)`;
       })
       .catch(() => {
         document.getElementById("status-text").textContent = "Error loading data";
