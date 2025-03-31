@@ -1,7 +1,7 @@
-
 import express from "express";
 import axios from "axios";
 import dotenv from "dotenv";
+import { msToBft } from "./utils/beaufort";
 import { createEngine } from "./rules/engine";
 import { extractFactsFromCoverageJSON } from "./utils/fact-extractor";
 
@@ -24,15 +24,31 @@ app.get("/api/weather-status", async (req, res) => {
     });
 
     const facts = extractFactsFromCoverageJSON(response.data);
+
+    const windSpeedBft = msToBft(facts.windSpeed);
+    const windGustBft = msToBft(facts.windGust);
+
     const engine = createEngine();
 
-    Object.entries(facts).forEach(([key, value]) => engine.addFact(key, value));
+    // ✅ Add all extracted facts to the rule engine
+    Object.entries(facts).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        engine.addFact(key, value);
+      }
+    });
 
     const result = await engine.run();
     const status = result.events?.[0]?.params?.status ?? "unknown";
 
-    res.json({ ...facts, status });
+    res.json({
+      ...facts,
+      windSpeedBft,
+      windGustBft,
+      status
+    });
+
   } catch (err: any) {
+    console.error("Error in /api/weather-status:", err.message);
     res.status(500).json({ error: "Failed to fetch or evaluate data", message: err.message });
   }
 });

@@ -22,24 +22,47 @@
     .green { background: green; }
     .orange { background: orange; }
     .red { background: red; }
+
+    .data {
+      font-size: 1.1rem;
+      margin-top: 1rem;
+    }
   </style>
 </head>
 <body>
   <h1>Weather Status</h1>
   <div id="traffic-light" class="light"></div>
   <p id="status-text">Loading...</p>
+  <div class="data" id="details"></div>
 
   <script>
+    // Convert degrees to compass direction
+    function degToCompass(deg) {
+      const dirs = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+                    "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+      const index = Math.round(deg / 22.5) % 16;
+      return dirs[index];
+    }
+
     fetch("/api/weather-status")
       .then(res => res.json())
       .then(data => {
         const light = document.getElementById("traffic-light");
         const statusText = document.getElementById("status-text");
+        const details = document.getElementById("details");
 
         light.classList.remove("green", "orange", "red");
         light.classList.add(data.status);
 
+        const windDir = degToCompass(data.windDirection);
+
         statusText.textContent = `Status: ${data.status.toUpperCase()} | Temp: ${data.temperature}°C`;
+
+        details.innerHTML = `
+          <p>💨 Wind Speed: ${data.windSpeed} m/s (${data.windSpeedBft} Bft)</p>
+          <p>🌬 Gusts: ${data.windGust} m/s (${data.windGustBft} Bft)</p>
+          <p>🧭 Direction: ${windDir} (${data.windDirection}°)</p>
+        `;
       })
       .catch(() => {
         document.getElementById("status-text").textContent = "Error loading data";
