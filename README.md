@@ -1,0 +1,111 @@
+# 🌦 KNMI Weather Traffic Light
+
+This is a full-stack Node.js app that:
+
+- Fetches weather data from the **KNMI EDR API**
+- Evaluates it using **json-rules-engine**
+- Serves a frontend with a traffic light status (green/orange/red)
+- Built with **TypeScript**, **Docker**, and **Express**
+
+---
+
+## 🚀 Features
+
+- 🔧 TypeScript backend with Express
+- 🔍 Rule engine for smart evaluations
+- 🔗 Fetches 10-minute data from KNMI
+- 🚦 Frontend traffic light at `/`
+- 🐳 Docker support for containerized deployment
+
+---
+
+## 🛠 Setup
+
+### 1. Clone the project & install dependencies
+
+```bash
+npm install
+```
+
+### 2. Set your KNMI API Key
+
+Create a `.env` file:
+
+```
+KNMI_API_KEY=your_actual_knmi_api_key
+```
+
+You can [request a key here](https://developer.dataplatform.knmi.nl/).
+
+---
+
+## 💻 Run Locally
+
+### Development mode (auto-reload)
+
+```bash
+npm run dev
+```
+
+### Production mode
+
+```bash
+npm run build
+npm start
+```
+
+---
+
+## 🔌 API Endpoint
+
+### `GET /api/weather-status`
+
+Returns the latest weather status and facts:
+
+```json
+{
+  "temperature": 15.9,
+  "windSpeed": 1.19,
+  "windGust": 2.53,
+  "windDirection": 56.1,
+  "status": "green"
+}
+```
+
+---
+
+## 🌐 Frontend (Traffic Light)
+
+Visit [http://localhost:3000/](http://localhost:3000/) to view a visual traffic light based on the weather status.
+
+---
+
+## 🐳 Run with Docker
+
+### Build the image
+
+```bash
+docker build -t knmi-weather-app .
+```
+
+### Run the container
+
+```bash
+docker run -p 3000:3000 --env-file .env knmi-weather-app
+```
+
+---
+
+## 🧠 Rules Logic
+
+Located in `src/rules/definitions.ts`, e.g.:
+
+- 🔴 Red: temp > 30°C or wind gust > 15 m/s
+- 🟠 Orange: temp between 20–30°C or gust between 10–15 m/s
+- 🟢 Green: temp < 20°C and gust < 10 m/s
+
+---
+
+## 📝 License
+
+MIT
