@@ -7,7 +7,6 @@ This is a full-stack Node.js app that:
 - Serves a frontend with a traffic light status (green/orange/red)
 - Built with **TypeScript**, **Docker**, and **Express**
 
-
 ![alt text](image.png)
 ---
 
@@ -65,12 +64,15 @@ npm start
 Returns the latest weather status and facts:
 
 ```json
+
 {
-  "temperature": 15.9,
-  "windSpeed": 1.19,
-  "windGust": 2.53,
-  "windDirection": 56.1,
-  "status": "green"
+    "temperature":7.6,
+    "windSpeed":4.72,
+    "windGust":9.63,
+    "windDirection":342.5,
+    "windSpeedBft":3,
+    "windGustBft":5,
+    "status":"green"
 }
 ```
 
