@@ -102,10 +102,6 @@ docker run -p 3000:3000 --env-file .env weer-stoplicht
 
 Located in `src/rules/definitions.ts`, e.g.:
 
-- 🔴 Red: temp > 30°C or wind gust > 15 m/s
-- 🟠 Orange: temp between 20–30°C or gust between 10–15 m/s
-- 🟢 Green: temp < 20°C and gust < 10 m/s
-
 ---
 
 ## 📝 License
