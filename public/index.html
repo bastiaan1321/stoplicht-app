@@ -62,6 +62,15 @@
     .e { top: 50%; right: 5px; transform: translateY(-50%); }
     .s { bottom: 5px; left: 50%; transform: translateX(-50%); }
     .w { top: 50%; left: 5px; transform: translateY(-50%); }
+
+    #river-container {
+      margin-top: 4rem;
+    }
+
+    svg {
+      width: 80%;
+      height: auto;
+    }
   </style>
 </head>
 <body>
@@ -82,8 +91,73 @@
     </div>
   </div>
 
+  <!-- River drawing area -->
+  <div id="river-container">
+    <svg id="riverCanvas" viewBox="0 0 1937 2255" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+
   <script>
-    // Convert degrees to compass direction
+    const svgUrl = "assets/river.svg"; // Must be same-folder
+    const svg = document.getElementById("riverCanvas");
+    const numSamples = 400;
+
+    function drawColoredRiver(path, windDeg, status = "green") {
+  const length = path.getTotalLength();
+  const step = length / numSamples;
+
+  Array.from(svg.querySelectorAll("line")).forEach(el => el.remove());
+
+  for (let i = 0; i < numSamples - 1; i++) {
+    const p1 = path.getPointAtLength(i * step);
+    const p2 = path.getPointAtLength((i + 1) * step);
+
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const angle = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+
+    const diff = Math.abs(angle - windDeg);
+    const delta = diff > 180 ? 360 - diff : diff;
+
+    const cosDiff = Math.cos(delta * Math.PI / 180);
+    const intensity = Math.abs(cosDiff); // 0 = perpendicular → red, 1 = aligned → green
+
+
+    // Base color
+    let r = Math.round(255 * (1 - intensity)); // more red when perpendicular
+    let g = Math.round(255 * intensity);       // more green when aligned
+
+    // Apply traffic light overrides
+    if (status === "red" && g > r) {
+      // green → orange
+      r = 255;
+      g = 165;
+    } else if (status === "orange" && g > r) {
+      // green → dark green
+      r = 0;
+      g = 100;
+    } else if (status === "green" && r > g) {
+      // red → orange
+      r = 255;
+      g = 165;
+    }
+
+    const color = `rgb(${r},${g},0)`;
+
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("x1", p1.x);
+    line.setAttribute("y1", p1.y);
+    line.setAttribute("x2", p2.x);
+    line.setAttribute("y2", p2.y);
+    line.setAttribute("stroke", color);
+    line.setAttribute("stroke-width", 10);
+    line.setAttribute("stroke-linecap", "round");
+    svg.appendChild(line);
+  }
+
+  path.setAttribute("visibility", "hidden");
+}
+
+
     function degToCompass(deg) {
       const dirs = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
                     "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
@@ -91,32 +165,55 @@
       return dirs[index];
     }
 
-    fetch("/api/weather-status")
-      .then(res => res.json())
-      .then(data => {
-        const light = document.getElementById("traffic-light");
-        const statusText = document.getElementById("status-text");
-        const details = document.getElementById("details");
-        const arrow = document.getElementById("wind-arrow");
+    // Load the river and wait for weather
+    let loadedPath = null;
 
-        light.classList.remove("green", "orange", "red");
-        light.classList.add(data.status);
+    fetch(svgUrl)
+      .then(res => res.text())
+      .then(text => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, "image/svg+xml");
+        const path = doc.querySelector("path");
+        svg.appendChild(path);
+        loadedPath = path;
 
-        const windDir = degToCompass(data.windDirection);
-
-        statusText.textContent = `Status: ${data.status.toUpperCase()} | Temp: ${data.temperature}°C`;
-
-        details.innerHTML = `
-          <p>💨 Wind Speed: ${data.windSpeed} m/s (${data.windSpeedBft} Bft)</p>
-          <p>🌬 Gusts: ${data.windGust} m/s (${data.windGustBft} Bft)</p>
-          <p>🧭 Direction: ${windDir} (${data.windDirection}°)</p>
-        `;
-
-        arrow.style.transform = `rotate(${data.windDirection}deg)`;
-      })
-      .catch(() => {
-        document.getElementById("status-text").textContent = "Error loading data";
+        // Once river is loaded, we can call weather
+        fetchWeatherAndDraw();
       });
+
+    function fetchWeatherAndDraw() {
+      fetch("/api/weather-status")
+        .then(res => res.json())
+        .then(data => {
+          const light = document.getElementById("traffic-light");
+          const statusText = document.getElementById("status-text");
+          const details = document.getElementById("details");
+          const arrow = document.getElementById("wind-arrow");
+
+          light.classList.remove("green", "orange", "red");
+          light.classList.add(data.status);
+
+          const windDeg = parseFloat(data.windDirection);
+          const windDir = degToCompass(windDeg);
+
+          statusText.textContent = `Status: ${data.status.toUpperCase()} | Temp: ${data.temperature}°C`;
+
+          details.innerHTML = `
+            <p>💨 Wind Speed: ${data.windSpeed} m/s (${data.windSpeedBft} Bft)</p>
+            <p>🌬 Gusts: ${data.windGust} m/s (${data.windGustBft} Bft)</p>
+            <p>🧭 Direction: ${windDir} (${windDeg}°)</p>
+          `;
+
+          arrow.style.transform = `rotate(${windDeg}deg)`;
+
+          if (loadedPath) {
+            drawColoredRiver(loadedPath, windDeg, data.status);
+          }
+        })
+        .catch(() => {
+          document.getElementById("status-text").textContent = "Error loading data";
+        });
+    }
   </script>
 </body>
 </html>
